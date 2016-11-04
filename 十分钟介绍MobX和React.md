@@ -1,10 +1,10 @@
-#十分钟介绍MobX 和 React(翻译，原文(Ten minute introduction to MobX and React)[https://mobxjs.github.io/mobx/getting-started.html])
+#十分钟介绍MobX 和 React(翻译，原文[Ten minute introduction to MobX and React](https://mobxjs.github.io/mobx/getting-started.html))
 MobX是一个简单、可扩展和可测试的状态管理解决方案。这个十分钟的教程会教你所有重要的MobX的概念。MobX是一个独立的库，但是很多人把他和React结合使用，这个教程就是着重讲如何和React使用的。
 ##核心思想
 状态对每一个应用来说都是核心的东西，如果没有很好的一个状态管理办法，将很容易产生不一致的状态，出现很多问题。比如与周围存在的局部变量不同步的状态等等。于是很多状态管理解决方案尝试去约束使用者，例如，使用不可变的状态。但是这样做产生了新问题，数据需要标准化，没有准确的参考，并且它无法使用原型大法。
 MobX不会产生不一致的状态，这从根本上使得管理数据变得简单。实现这一点的方法很简单，确保可以从应用状态派生的所有内容都会自动派生。
 从概念上讲，MobX会像电子表格一样处理您的应用程序。
-![](file:img/overview.png) 
+![](/img/overview.png) 
 * 1.首先，这里有一个应用的状态。对象、数组、元素，用这些图表示应用程序模型的引用关系。这些值就是程序的“数据单元”。
 * 2.其次，他们具有派生功能。理论上说，任何值都可以从应用程序的状态中计算出来。这些派生或者是计算出来的值，他们可以来自简单的数字计算，也可以来自复杂的HTML可视化表示。如果把管理状态看作一张电子表格，那么这些状态就是电子表格中的图表和公式。
 * 3.derivations和reactions非常相似。主要一个区别就是reactions的函数不会产生值。他们只是在自动执行某些程序。通常这是和I/O相关的。他们确保DOM的及时更新和正确自动的发起网络请求。
@@ -126,6 +126,7 @@ Next todo: "read MobX tutorial". Progress: 1/2
 Next todo: "grok MobX tutorial". Progress: 1/2
 ```
 `report`并没有自动同步打印出中间的值。如果要仔细研究打印的东西，你可以看到第四行没有产生新的日志。因为`report`实际上没有例如重命名那样的改变，尽管返回的数据已经改变。从另一方面来看，改变第一个todo会更新report,从这时候起，name这个属性被report主动使用。这个例子充分说明，不但是todos的数组被观察并`autorun`,而且一些todo item中自有的属性也会被`autorun`。
+<<<<<<< HEAD
 
 ##让react响应起来
 好的，目前我们做了一个极其无聊的即时反映。现在开始做一个对用户操作进行反应的store。React Component 不会在store之外即时映射用户的操作。来自`mobx-react`的 `@observer`构造器解决React Componet在render方法中执行`autorun`,并自动异步保持状态。这与我们之前例子中做的`report`没什么不同。
@@ -251,3 +252,5 @@ mobx-react-devtools包提供了你在这个屏幕的右上角找到的devtools�
 
 ##MobX不是一个状态容器
 人们经常使用MobX作为Redux的替代品。但请注意，MobX只是一个库来解决技术问题，而不是一个架构或甚至状态容器本身。在这个意义上，上面的例子是设计的，并且推荐使用适当的工程实践，如在方法中封装逻辑，在stroe或控制器中组织它们。
+=======
+>>>>>>> 2409a548f044258b9fe61211929a0c6f0609c571
