@@ -24,7 +24,7 @@ class Todo {
 用`observable`就像将对象的属性转换为电子表格单元格。但是与电子表格不同，这些值不仅仅是原始值，还包括引用，对象和数组。您甚至可以[定义自己的](http://mobxjs.github.io/mobx/refguide/extending.html)可观察数据源
 
 ## 在ES5，ES6和ES.next环境中使用MobX
-虽然`@`这个东西看起来陌生，这些是ES.next语法的装饰器。在MobX中，使用它们是完全可选的。有关如何使用的详细信息，请参阅[文档](http://mobxjs.github.io/mobx/best/decorators.html)。 MobX可以在任何ES5环境上运行，但是利用ES.next功能（如装饰器）是使用MobX时的最佳选择。
+虽然`@`这个ES.next语法的装饰器看起来有些陌生,但是在MobX中，它们是完全可选的。有关如何使用的详细信息，请参阅[文档](http://mobxjs.github.io/mobx/best/decorators.html)。 MobX可以在任何ES5环境上运行，但是利用ES.next功能（如装饰器）是使用MobX时的最佳选择。
 
 在ES5中，上面的代码段将如下所示：
 
@@ -39,7 +39,7 @@ function Todo() {
 ```
 
 ## 计算出的值
-使用MobX，您可以定义在修改相关数据时自动计算出派生的值。通过使用`@computed`装饰器或使用getter / setter函数时使用`（extend）Observable`.
+在MobX中，你可以定义在修改相关数据时自动计算出派生的值。通过使用`@computed`装饰器或使用getter / setter函数时使用`（extend）Observable`.
 ```
 class TodoList {
     @observable todos = [];
@@ -54,7 +54,7 @@ MobX将确保在添加todo或属性修改`finished `时，unfinishedTodoCount会
 ## 响应
 响应有点类似于计算出的值。但响应不是产生一个新的值，而是做出相应的附加操作，例如打印到控制台，进行网络请求，增量更新React组件树以操作DOM等。
 
-### React组件
+### 在React中使用
 如果你使用React，你可以把你的（无状态函数）组件转换为响应组件，只需在mobx-react包中的`observer`函数/装饰器添加到它们之前。
 ```
 import React, {Component} from 'react';
@@ -89,7 +89,7 @@ const store = new TodoList();
 ReactDOM.render(<TodoListView todoList={store} />, document.getElementById('mount'));
 ```
 
-`observer `将React（函数）组件转换为他们渲染数据派生所出来的。当使用MobX时，没有逻辑或纯渲染的组件。所有组件智能地渲染，但以固定的方式定义。MobX将确保组件总是在需要时重新渲染，并且会过滤没有操作的状态。因此，上面例子中的onClick处理程序将强制对TodoView进行渲染，并且如果未完成任务的数量已经改变，TodoListView也会重新渲染。但是，如果您删除`Tasks left`（或将其放入一个单独的组件），当勾选框时，TodoListView将不再重新渲染.你可以通过更改[JSFiddle](https://jsfiddle.net/mweststrate/wv3yopo0/)进行验证。
+`observer `将React（函数）组件转换为他们渲染数据派生出来的。当使用MobX时，没有逻辑或纯渲染的组件。所有组件智能地渲染，但以固定的方式定义。MobX将确保组件总是在需要时才会重新渲染，并且会过滤没有操作的状态。因此，上面例子中的onClick处理程序将强制对TodoView进行渲染，并且如果未完成任务的数量已经改变，TodoListView也会重新渲染。但是，如果您删除`Tasks left`（或将其放入一个单独的组件），当勾选框时，TodoListView将不再重新渲染.你可以通过更改[JSFiddle](https://jsfiddle.net/mweststrate/wv3yopo0/)进行验证。
 
 ### 自定义响应
 可以通过相应的情况，创建自定义响应函数，如`autorun`，`autorunAsync`或`when`。
