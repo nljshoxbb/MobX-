@@ -1,129 +1,131 @@
 # MobX-
 学习MobX3和翻译文档
 
-## 介绍
-MoxB一直在尝试通过响应式编程让状态管理更简单和更易于扩展。MobX背后的原理非常简单：可以从应用程序状态中自动派生出任何内容，其中包括UI，数据序列化，服务器通信等。
+# MobX概要
 
-React和MobX是一个强大的组合。React通过提供将其转换为可渲染组件树的机制来呈现应用程序状态。React提供了通过使用虚拟DOM机制,减少了昂贵的DOM操作，从而最佳地呈现出UI。MobX提供一个机制，即通过响应式虚拟关系状态映射，来最佳地同步应用程序状态与React组件，该关系仅在需要时更新，并且永远不会过时。
+目前为止，这听起来有点奇怪，但是使用MboX来让你的应用改变为响应式，可以归结为三个步骤
 
-### 核心概念
-MobX只有几个核心概念。以下代码片段可以使用[JSFiddle在线尝试](https://jsfiddle.net/mweststrate/wv3yopo0/)（或[不使用ES6和JSX](https://jsfiddle.net/rubyred/55oc981v/)）
+## 1.定义状态，并使其可观察
+将状态存储在任何你喜欢的数据结构中;对象，数组，类。循环数据结构，引用，这样都没有关系。只要确保想要观察的属性标记为`mobx`，那么你所标记的属性随时间的变化都会被记录下来。
 
-## 可观察状态
-MobX向现有的数据结构（如对象，数组和类实例）添加了可观察的功能。可以简单地通过使用`@observable`装饰器（ES.Next）注释类属性。
 ```
+import {observable} from 'mobx';
 
-class Todo {
-    id = Math.random();
-    @observable title = "";
-    @observable finished = false;
-}
+var appState = observable({
+    timer: 0
+});
 
 ```
 
-用`observable`就像将对象的属性转换为电子表格单元格。但是与电子表格不同，这些值不仅仅是原始值，还包括引用，对象和数组。您甚至可以[定义自己的](http://mobxjs.github.io/mobx/refguide/extending.html)可观察数据源
+## 2.创建一个响应状态变化的视图
 
-## 在ES5，ES6和ES.next环境中使用MobX
-虽然`@`这个ES.next语法的装饰器看起来有些陌生,但是在MobX中，它们是完全可选的。有关如何使用的详细信息，请参阅[文档](http://mobxjs.github.io/mobx/best/decorators.html)。 MobX可以在任何ES5环境上运行，但是利用ES.next功能（如装饰器）是使用MobX时的最佳选择。
+在appState 中任何属性都可以被追踪观察; 你现在可以在appState中创建相关数据，并在数据更改时，引起视图的自动更新。 MobX将找到性能最优的方式来更新你的视图。 这个事实节省了大量的样板，提高你的效率。
 
-在ES5中，上面的代码段将如下所示：
-
+一般来说，任何函数都可以成为观察其数据的反应视图，MobX可以应用于任何符合ES5的JavaScript环境。但是这里是一个以React组件形式的视图的（ES6）示例
 ```
-function Todo() {
-    this.id = Math.random()
-    extendObservable(this, {
-        title: "",
-        finished: false
-    })
-}
-```
-
-## 计算出的值
-在MobX中，你可以定义在修改相关数据时自动计算出派生的值。通过使用`@computed`装饰器或使用getter / setter函数时使用`（extend）Observable`.
-```
-class TodoList {
-    @observable todos = [];
-    @computed get unfinishedTodoCount() {
-        return this.todos.filter(todo => !todo.finished).length;
-    }
-}
-```
-
-MobX将确保在添加todo或属性修改`finished `时，unfinishedTodoCount会自动更新。这种计算类似于电子表格程序中的公式，如MS 的Excel。只有当需要时会自动更新。
-
-## 响应
-响应有点类似于计算出的值。但响应不是产生一个新的值，而是做出相应的附加操作，例如打印到控制台，进行网络请求，增量更新React组件树以操作DOM等。
-
-### 在React中使用
-如果你使用React，你可以把你的（无状态函数）组件转换为响应组件，只需在mobx-react包中的`observer`函数/装饰器添加到它们之前。
-```
-import React, {Component} from 'react';
-import ReactDOM from 'react-dom';
-import {observer} from "mobx-react";
+import {observer} from 'mobx-react';
 
 @observer
-class TodoListView extends Component {
+class TimerView extends React.Component {
     render() {
-        return <div>
-            <ul>
-                {this.props.todoList.todos.map(todo =>
-                    <TodoView todo={todo} key={todo.id} />
-                )}
-            </ul>
-            Tasks left: {this.props.todoList.unfinishedTodoCount}
-        </div>
+        return (<button onClick={this.onReset.bind(this)}>
+                Seconds passed: {this.props.appState.timer}
+            </button>);
     }
-}
 
-const TodoView = observer(({todo}) =>
-    <li>
-        <input
-            type="checkbox"
-            checked={todo.finished}
-            onClick={() => todo.finished = !todo.finished}
-        />{todo.title}
-    </li>
-)
+    onReset () {
+        this.props.appState.resetTimer();
+    }
+};
 
-const store = new TodoList();
-ReactDOM.render(<TodoListView todoList={store} />, document.getElementById('mount'));
+React.render(<TimerView appState={appState} />, document.body);
 ```
 
-`observer `将React（函数）组件转换为他们渲染数据派生出来的。当使用MobX时，没有逻辑或纯渲染的组件。所有组件智能地渲染，但以固定的方式定义。MobX将确保组件总是在需要时才会重新渲染，并且会过滤没有操作的状态。因此，上面例子中的onClick处理程序将强制对TodoView进行渲染，并且如果未完成任务的数量已经改变，TodoListView也会重新渲染。但是，如果您删除`Tasks left`（或将其放入一个单独的组件），当勾选框时，TodoListView将不再重新渲染.你可以通过更改[JSFiddle](https://jsfiddle.net/mweststrate/wv3yopo0/)进行验证。
+## 3.修改状态
 
-### 自定义响应
-可以通过相应的情况，创建自定义响应函数，如`autorun`，`autorunAsync`或`when`。
-例如，以下`autorun`将在`unfinishedTodoCount`更改时打印一条日志消息.
+第三件事是修改状态。That is what your app is all about after all。 与许多其他框架不同，MobX不会决定如何做到这一点。 有最佳实践，但是需要记住的是：MobX帮助你以简单直接的方式做事情。
+以下代码将每秒更改你的数据，并且UI将在需要时自动更新。 在更改状态的控制器函数或者应该更新的视图中，你可以不用定义显式关系。 因为使用observable装饰你的状态和视图足以让MobX检测所有关系。 下面是改变状态的两个例子：
 ```
-autorun(() => {
-    console.log("Tasks left: " + todos.unfinishedTodoCount)
+appState.resetTimer = action(function reset() {
+    appState.timer = 0;
+});
+
+setInterval(action(function tick() {
+    appState.timer += 1;
+}), 1000);
+
+```
+仅当在严格模式下使用MobX时才需要动作包装器（默认关闭）。 建议使用`action`，因为它将帮助您更好地结构化应用程序，并表达一个函数修改状态的意图。 它还自动应用事务以获得最佳性能
+
+# 概念 & 原则
+
+## 概念
+MobX区分应用程序中的以下概念。你在之前的概要简述中看到了他们，但这里让我们更深入地了解他们
+
+## 1.State
+State是驱动应用程序的数据。通常有域特定的状态，例如一个待办事项列表，并有视图状态，如当前选择的元素。记住，状态就像保存着数据的电子表格
+
+## 2.Derivations
+可以从没有任何进一步交互的状态导出的任何事物都是属于派生，所以衍生以许多形式存在：
+* 用户界面
+* 派生数据，如剩余的todos数量。
+* 后端集成，如发送更改到服务器
+
+MobX  在派生的概念中与别的库有所不同:
+* `Computed values`。这些是可以总是使用纯函数从当前可观察状态导出的值
+* `Reactions`。`Reactions`是需要在状态改变时自动发生的副作用。这些是需要作为命令式和反应式编程之间的桥梁。或者使它更清楚，它们最终需要实现I / O。
+
+刚开始使用MobX的人倾向于经常使用`reactions`。推荐是如果要根据当前状态创建一个值，请使用`computed`。
+
+## 3. Actions
+`Actions`是任何改变状态的代码段。用户事件，后端数据推送，预定事件等。操作类似于在电子表格单元格中输入新值的用户。
+`Actions`可以在MobX中明确定义，以帮助你更清晰地构造代码。如果MobX在严格模式下使用，MobX将强制任何状态都不能被修改。
+
+# 原则
+
+MobX支持单向数据流，其中 `Actions` 更改状态，这反过来更新所有受影响的视图。
+
++----------+        +---------+       +---------+
+|  Action  |------->|  State  |------>|  Views  |
++----------+        +---------+       +---------+
+
+当状态改变时，所有派生出来的值都会自动更新。这样的结果可想而知，我们永远不可能观察到中间值的变化。
+默认情况下，所有派生出来的值均同步更新。这意味着例如`Actions`可以在改变状态之后直接安全地检查计算值.
+`Computed values`是惰性更新的。任何`computed value`将不会更新，直到需要副作用（I / O）。如果视图不再使用，它​​将被自动进行垃圾回收.
+所有`Computed values`应为纯净的。他们不应该去改变`state`。
+
+# Illustration
+以下列表说明了上述概念和原则：
+```
+import {observable ,autorun} from 'mobx';
+
+var todoStore = observable({
+    //一些被观察的状态
+    todos:[],
+
+    //一个被派生出的值
+    get completedCount (){
+        return this.todos.filter(todo => todo.completed).length;
+    }
 })
+
+//观察state的函数
+autorun(function(){
+   console.log("Completed %d of %d items",
+        todoStore.completedCount,
+        todoStore.todos.length
+   );
+})
+
+/* 通过actions 修改state */
+todoStore.todos[0] = {
+    title: "Take a walk",
+    completed: false
+};
+// -> 同步打印出 'Completed 0 of 1 items'
+
+todoStore.todos[0].completed = true;
+// -> 同步打印出 'Completed 1 of 1 items'
+
+
 ```
-
-## MobX会做什么反应?
-为什么每次更改unfinishedTodoCount时都会打印一条新消息？答案是：MobX对在执行跟踪函数期间读取的任何现有具有observable属性做出响应。有关MobX如何确定哪些可观察对象需要做出响应的深入解释，请查看[understanding what MobX reacts to](https://github.com/mobxjs/mobx/blob/gh-pages/docs/best/react.md).
-
-## actions
-与许多通量框架不同，MobX不需要配置处理用户事件
-* 这可以以类似于Flux的方式完成。
-* 或者通过使用react全家桶来处理事件
-* 或者通过简单地以最直接的方式处理事件，如上面的onClick处理程序所示
-
-最后，一切都归结为：不知何故，状态应该更新。
-
-更新状态后，`MobX`将以高效，无干扰的方式处理其余部分.如下所示，用几个简单的语句就足以自动更新用户界面。
-
-不再需要调用类似dispatcher的操作。React组件只一个是状态机，最终状态将由MobX来管理。
-
-```
-store.todos.push(
-    new Todo("Get Coffee"),
-    new Todo("Write simpler code")
-);
-store.todos[0].finished = true;
-```
-
-尽管如此，MobX有一个可选的内置[actions](https://mobxjs.github.io/mobx/refguide/action.html)的概念。使用也有优势，比如它们将帮助您更好地构建代码，并很好的预测何时和何处修改状态。
-
-## MobX：简单和可扩展
-MobX虽然小，但可以用于状态管理。这使得MobX方法不仅简单，而且利于扩展。
